@@ -59,7 +59,7 @@ boolean tone_flag=0;
 //#define  WAIT   175781  //30 sek
 //#define  WAIT 703125    //  2 min 
 //#define  WAIT 3515625    // 10 min
-#define  WAIT 3512695   //  skorekcija
+#define  WAIT 3512695   //  s korekcija
 
 
 long int timer_cnt = WAIT;
@@ -67,7 +67,7 @@ long int timer_cnt = WAIT;
  char cw_id_string[] = { LOW_SPEED, charH charIP  HI_SPEED, charL charZ char1 charN charY EXIT};
 
 
-//Timer2 overflow interrupt vector handler, called (12,000,000/256) times per second
+//Timer2 overflow interrupt vector handler, called (12,000,000/256/8) times per second
 ISR(TIMER2_OVF_vect) {
   timer_cnt --;  
   if (timer_cnt==0){  timer_cnt = WAIT;  send_cw=true;  }
@@ -79,7 +79,7 @@ ISR(TIMER2_OVF_vect) {
 
 
 //***************************************************************************************
-void timer_setup() {  //Timer2 Settings: Timer Prescaler /128, WGM mode 0
+void timer_setup() {  //Timer2 Settings: Timer Prescaler /8, WGM mode 0
           TCCR2A = 0;
           TCCR2B = 1<<CS21 ;
           
