@@ -21,6 +21,7 @@
 int one_tit=60;
 
 boolean send_cw=true;
+boolean tone_flag=0;
 
 #define charA 1,2,0,
 #define charB 2,1,1,1,0,
@@ -52,43 +53,40 @@ boolean send_cw=true;
 #define  LOW_SPEED  3
 #define  HI_SPEED   4
 #define EXIT 100
-//#define WAIT   10986  // abt 30 sec
-#define WAIT   1406250
-//#define WAIT   10986 
+#define WAIT   5000
+
 
 long int timer_cnt = WAIT;
 
- char cw_id_string[] = { LOW_SPEED, charH charIP HI_SPEED,  charL charZ char1 charN charY 100};
+ char cw_id_string[] = { LOW_SPEED, charH charIP  charL charZ char1 charN charY 100};
 
 
 //Timer2 overflow interrupt vector handler, called (12,000,000/256) times per second
 ISR(TIMER2_OVF_vect) {
-  timer_cnt --;
+  timer_cnt --;  
+  if (timer_cnt==0){  timer_cnt = WAIT;  send_cw=true;  }
   
-  if (timer_cnt==0){
-  timer_cnt = WAIT;
-  send_cw=true;
-  
-  
-  
-  }
-
-   
-   
-
-    
-  
-
-  
+   if (tone_flag) digitalToggle(speaker);
+  //digitalToggle(speaker);
 }  
+
+
+
 //***************************************************************************************
-void timer_setup() {  //Timer2 Settings: Timer Prescaler /256, WGM mode 0
+void timer_setup() {  //Timer1 Settings: Timer Prescaler /128, WGM mode 0
           TCCR2A = 0;
-          TCCR2B = 1<<CS22 | 1<<CS21;
-          //Timer2 Overflow Interrupt Enable  
-          TIMSK2 = 1<<TOIE2;  //reset timer
-          TCNT2 = 0;}
+          TCCR2B = 1<<CS22 ;
           
+          //Timer1 Overflow Interrupt Enable  
+          TIMSK2= 1<<TOIE2;  //reset timer
+          TCNT2 = 0;
+       
+       
+       
+       
+       
+ 
+        }
 //****
 void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
@@ -96,17 +94,19 @@ void(* resetFunc) (void) = 0; //declare reset function @ address 0
 void setup(){
           timer_setup();
           
+          pinMode(speaker, OUTPUT);
           pinMode(ledPin, OUTPUT);
           pinMode(CWPin, OUTPUT);
        
-          delay(500);
+          //delay(500);
 
-          Serial.begin(9600);
+          //Serial.begin(9600);
 
-          Serial.print("HiJuno Starts 73!\n");
+          //Serial.print("HiJuno Starts 73!\n");
           
           
           timer_cnt=WAIT;
+
             
 }
 //---------------------------------------------------------------------------------------------
@@ -116,8 +116,10 @@ void setup(){
 // 2 taa
 // 0 - end of char
 void tit(void){ digitalWrite(CWPin,1); tone(speaker, 600);  delay(one_tit);   noTone(speaker); digitalWrite(CWPin,0); delay(one_tit);}
-void taa(void){ digitalWrite(CWPin,1); tone(speaker, 600);  delay(3*one_tit); noTone(speaker); digitalWrite(CWPin,0); delay(one_tit);}
-void mmm(void){   delay(3*one_tit); }
+//void taa(void){ digitalWrite(CWPin,1); tone(speaker, 600);  delay(3*one_tit); noTone(speaker); digitalWrite(CWPin,0); delay(one_tit);}
+
+//void tit(void){ tone_flag=1; digitalWrite(CWPin,1);   delay(one_tit);   ; digitalWrite(CWPin,0); tone_flag=0;}
+void taa(void){ tone_flag=1; digitalWrite(CWPin,1);   delay(3*one_tit); ; digitalWrite(CWPin,0); tone_flag=0;}
 
 void send_cw_id(void){
   byte cw_cnt =0 ;
@@ -159,10 +161,11 @@ void send_cw_id(void){
   void loop ()
 {
      
-      if (send_cw == true )
-      send_cw_id();
-
+      if (send_cw == true )      send_cw_id();
       
+           tone_flag=1;
+      delay(one_tit);
+            tone_flag=0;
+      delay(one_tit);      
 }   
-
 
