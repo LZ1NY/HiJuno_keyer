@@ -154,9 +154,9 @@ void send_cw_id(void){
                         one_tit = 40;
                         break;
                     case LOW_SPEED:  
-                         one_tit = 28090;    //30 sek
-                         one_tit = 10000;
-                         one_tit = 100;
+                         //one_tit = 28090;    //30 sek
+                         //one_tit = 10000;
+                         one_tit = 1000;
                          break;           
                      case EXIT:
                            {send_cw=false;  break; }
