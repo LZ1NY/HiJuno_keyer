@@ -29,7 +29,7 @@ boolean tone_flag=0;
 #define charD 2,1,1,0,
 #define charE 1,0,
 #define charI 1,1,0,
-#define charIP 1,1,
+#define charIP 1,3,
 #define charH 1,1,1,1,0,
 
 
@@ -50,15 +50,19 @@ boolean tone_flag=0;
 #define char2 1,1,2,2,2,0,
 #define char6 2,1,1,1,1,0,
 
-#define  LOW_SPEED  3
-#define  HI_SPEED   4
-#define EXIT 100
-#define WAIT   5000
+#define  skipPause  3
+#define  LOW_SPEED  4
+#define  HI_SPEED   5
+#define  EXIT 6
+//#define  WAIT   175781  //30 sek
+#define  WAIT 703125    // 12 min 
+#define  WAIT 3515625    // 10 min
+#define  WAIT 3512695   //  skorekcija
 
 
 long int timer_cnt = WAIT;
 
- char cw_id_string[] = { LOW_SPEED, charH charIP  charL charZ char1 charN charY 100};
+ char cw_id_string[] = { LOW_SPEED, charH charIP  HI_SPEED, charL charZ char1 charN charY EXIT};
 
 
 //Timer2 overflow interrupt vector handler, called (12,000,000/256) times per second
@@ -67,27 +71,24 @@ ISR(TIMER2_OVF_vect) {
   if (timer_cnt==0){  timer_cnt = WAIT;  send_cw=true;  }
   
    if (tone_flag) digitalToggle(speaker);
-  //digitalToggle(speaker);
+      digitalToggle(ledPin);
 }  
 
 
 
 //***************************************************************************************
-void timer_setup() {  //Timer1 Settings: Timer Prescaler /128, WGM mode 0
+void timer_setup() {  //Timer2 Settings: Timer Prescaler /128, WGM mode 0
           TCCR2A = 0;
-          TCCR2B = 1<<CS22 ;
+          TCCR2B = 1<<CS21 ;
           
-          //Timer1 Overflow Interrupt Enable  
+          //Timer2 Overflow Interrupt Enable  
           TIMSK2= 1<<TOIE2;  //reset timer
           TCNT2 = 0;
        
-       
-       
-       
-       
+
  
         }
-//****
+
 void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 
@@ -106,6 +107,11 @@ void setup(){
           
           
           timer_cnt=WAIT;
+          
+                     Serial.begin(9600);
+           Serial.print("LZ0DLS Start 73!\n");
+       delay(10000);
+       
 
             
 }
@@ -115,36 +121,49 @@ void setup(){
 // 1 tit
 // 2 taa
 // 0 - end of char
-void tit(void){ digitalWrite(CWPin,1); tone(speaker, 600);  delay(one_tit);   noTone(speaker); digitalWrite(CWPin,0); delay(one_tit);}
-//void taa(void){ digitalWrite(CWPin,1); tone(speaker, 600);  delay(3*one_tit); noTone(speaker); digitalWrite(CWPin,0); delay(one_tit);}
+//void tit(void){ digitalWrite(CWPin,1); tone(speaker, 600);  delay(one_tit);   noTone(speaker); digitalWrite(CWPin,0); delay(one_tit);}
+///void taa(void){ digitalWrite(CWPin,1); tone(speaker, 600);  delay(3*one_tit); noTone(speaker); digitalWrite(CWPin,0); delay(one_tit);}
 
-//void tit(void){ tone_flag=1; digitalWrite(CWPin,1);   delay(one_tit);   ; digitalWrite(CWPin,0); tone_flag=0;}
-void taa(void){ tone_flag=1; digitalWrite(CWPin,1);   delay(3*one_tit); ; digitalWrite(CWPin,0); tone_flag=0;}
+void tit(void){ tone_flag=1; digitalWrite(CWPin,1);   delay(one_tit);   ; digitalWrite(CWPin,0); tone_flag=0; }
+void taa(void){ tone_flag=1; digitalWrite(CWPin,1);   delay(3*one_tit); ; digitalWrite(CWPin,0); tone_flag=0; }
+
 
 void send_cw_id(void){
   byte cw_cnt =0 ;
-  while(send_cw){   switch (cw_id_string[cw_cnt]){
+  Serial.print("*");
+  while(send_cw){   
+                    
+                    switch (cw_id_string[cw_cnt]){
                     case 0:
                           delay(3*one_tit);
                           break;   
                     case 1:
                           tit();
+                          delay(one_tit);
                           break;
                     case 2:
                           taa();
-                        break;
+                          delay(one_tit);
+                          break;
+                    case skipPause:
+                          tit();
+                          break;
+                    
                     case HI_SPEED:  
                         delay(1000);
                         one_tit = 40;
                         break;
                     case LOW_SPEED:  
-                         one_tit = 120;
+                         one_tit = 28090;    //30 sek
+                         one_tit = 10000;
+                         one_tit = 100;
                          break;           
-                     case 100:
-                           {send_cw=false; delay(1000);  break; }
+                     case EXIT:
+                           {send_cw=false;  break; }
                             }
                             
-                      cw_cnt++;      
+                      cw_cnt++;  
+                     
     
    }
     
@@ -162,10 +181,8 @@ void send_cw_id(void){
 {
      
       if (send_cw == true )      send_cw_id();
-      
-           tone_flag=1;
-      delay(one_tit);
-            tone_flag=0;
-      delay(one_tit);      
+      /* while(true){
+      Serial.print("*"); 
+      delay(28090);} */
 }   
 
