@@ -55,8 +55,8 @@ boolean tone_flag=0;
 #define  HI_SPEED   5
 #define  EXIT 6
 //#define  WAIT   175781  //30 sek
-#define  WAIT 703125    // 12 min 
-#define  WAIT 3515625    // 10 min
+//#define  WAIT 703125    //  2 min 
+//#define  WAIT 3515625    // 10 min
 #define  WAIT 3512695   //  skorekcija
 
 
@@ -109,8 +109,8 @@ void setup(){
           timer_cnt=WAIT;
           
                      Serial.begin(9600);
-           Serial.print("LZ0DLS Start 73!\n");
-       delay(10000);
+           Serial.print("Hi Juno 73!\n");
+       delay(5000);
        
 
             
